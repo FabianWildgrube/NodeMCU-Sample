@@ -45,14 +45,15 @@ Für die Wetterstation benötigt man folgende Teile:
 
 ## Sensor 
 
-Die Sensoreinheit besteht aus dem ESP-8266 als Zentrale, der Temperatur-, Luftfeuchtigkeit- und Luftdrucksensor sind über den I2C-Bus daran angeschlossen, hier werden die Pins D2 und D3 verwendet. Das Sound Detector Modul wird über den analogen Eingang ausgelesen. Die genaue Verschaltung der Sensormodule mit dem NodeMCU-Board ist auf folgendem Fritzing-Diagramm erkennbar.
+Die Sensoreinheit besteht aus dem ESP-8266 als Zentrale, der Temperatur-, Luftfeuchtigkeit- und Luftdrucksensor sind über den I2C-Bus daran angeschlossen, hier werden die Pins D2 und D3 verwendet. Das Sound Detector Modul wird über den analogen Eingang ausgelesen. 
+Alle Module werden über die NodeMCU mit Versorgungsspannung versorgt (einer der 3V Pins) und natürlich werden alle ground pins miteinander verbunden. Die SCL-Ports werden mit D3 verbunden, die SDA-Ports mit D2. Der Envelope-Ausgang des Sound-Moduls wird an den analogen Eingang AO geschlossen. Liest man die analogen werte aus, bekommt man die aktuell gemessene Amplitude (also Lautstärke) geliefert. 
 
-//
 
 ## ESP-Setup
 Die Daten werden über ein Arduino-Skript auf dem ESP-8266 ausgelesen und auf diesem über einen kleinen Webserver zur Verfügung gestellt. Damit auch der ESP auch von der Arduino-IDE unterstützt wird, muss man ein Paket, den ESP 8266 Core, nachladen. Wie das geht kann man im [Github-Repository von der ESP8266 Community](https://github.com/esp8266/Arduino) nachlesen. Dann braucht nur noch das von dir verwendete Board in der IDE unter "Werkzeuge" ausgewählt werden, wir haben das NodeMCU (Basierend auf dem ESP-12E) verwendet. 
 
-Der Code für die Sensor-Einheit ist HIER (LINK) zur Verfügung gestellt. Er ist leider weder schön noch gut nachvollziehbar, ist aber über mehrere Tage sehr stabil gelaufen. Für den Webserver wird die <ESP8266WiFi.h>- Bibliothek benutzt, zum Ansprechen des BMP180 und für das Handling des I2C-Bus werden zwei weitere Bibliotheken, <SFE_BMP180.h> und <Wire.h>, verwendet. 
+Der Code für die Sensor-Einheit steht unter source/SensorUnit zur Verfügung. Er ist leider weder schön noch gut nachvollziehbar, ist aber über mehrere Tage sehr stabil gelaufen. Für den Webserver wird die <ESP8266WiFi.h>- Bibliothek benutzt, zum Ansprechen des BMP180 und für das Handling des I2C-Bus werden zwei weitere Bibliotheken, <SFE_BMP180.h> und <Wire.h>, verwendet. 
+Das Grundgerüst für den Webserver (was die meisten Zeilen ausmacht) basiert auf einem der Beispiele aus der Bibliothek. Die Sensordaten werden regelmäßig abgefragt und dann auf der Website als HTML angezeigt. Dies ist direkt für den User gedacht, der auf dem RasPi eingerichtete Server holt sich die Daten direkt im JSON-Format ab. Dieser ruft nicht die "Homepage" auf, sondern /raw und bekommt sofort ein JSON-Element geliefert. 
 
 ## Einrichtung des Frontend Servers auf dem Raspberry Pi
 
