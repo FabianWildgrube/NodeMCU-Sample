@@ -7,7 +7,7 @@
 #define Addr 0x40
 #define ALTITUDE 1260.0 //Höhe in Leysin
 #define AMPLITUDEPIN A0
-unsigned long previousMillis = 0;        // will store last time LED was updated
+unsigned long previousMillis = 0;     
 const long interval = 1000;           // interval at which to Update the Sensor Variables (milliseconds)
 
 const char* ssid = "ssid";
@@ -108,7 +108,6 @@ void loop(){
   unsigned long currentMillis = millis();
   
   if (currentMillis - previousMillis >= interval) {
-    // save the last time you blinked the LED
     previousMillis = currentMillis;
 
 unsigned int data[2];
@@ -337,9 +336,6 @@ char status;
   ///////////////////////////
   String sResponse,sHeader;
   
-  ////////////////////////////
-  // 404 for non-matching path
-  ////////////////////////////
   
   ///////////////////////
   // format the html page
@@ -398,8 +394,6 @@ char status;
     sResponse += "m): ";
     sResponse += p0;
     sResponse += "hPa <br>";
-    sResponse += "Funktion 1 schaltet GPIO2 und erzeugt eine serielle Ausgabe.<BR>";
-    sResponse += "<p>Funktion 1 <a href=\"?pin=LEDON\"><button>einschalten</button></a>&nbsp;<a href=\"?pin=LEDOFF\"><button>ausschalten</button></a></p>";
 
     
     //////////////////////
@@ -408,14 +402,6 @@ char status;
     if (sCmd.length()>0) {
       // write received command to html page
       sResponse += "Kommando:" + sCmd + "<BR>";
-      
-      // switch GPIO
-      if(sCmd.indexOf("LEDOFF")>=0)      {
-        digitalWrite(2, 0);
-      }
-      else if(sCmd.indexOf("LEDON")>=0)      {
-        digitalWrite(2, 1);
-      }
     }
     
     sResponse += "<FONT SIZE=-2>";
