@@ -54,6 +54,21 @@ Die Daten werden über ein Arduino-Skript auf dem ESP-8266 ausgelesen und auf di
 
 Der Code für die Sensor-Einheit steht unter source/SensorUnit zur Verfügung. Er ist leider weder schön noch gut nachvollziehbar, ist aber über mehrere Tage sehr stabil gelaufen. Für den Webserver wird die `ESP8266WiFi.h`- Bibliothek benutzt, zum Ansprechen des BMP180 und für das Handling des I2C-Bus werden zwei weitere Bibliotheken, `SFE_BMP180.h` und `Wire.h`, verwendet. 
 Das Grundgerüst für den Webserver (was die meisten Zeilen ausmacht) basiert auf einem der Beispiele aus der Bibliothek. Die Sensordaten werden regelmäßig abgefragt und dann auf der Website als HTML angezeigt. Dies ist direkt für den User gedacht, der auf dem RasPi eingerichtete Server holt sich die Daten direkt im JSON-Format ab. Dieser ruft nicht die "Homepage" auf, sondern `/raw` und bekommt sofort ein JSON-Element geliefert. 
+Zum Debuggen und um nachzuvollziehen, was gerade so im System passiert ist die Serielle Ausgabe sehr hilfreich. Schließt man den ESP über USB an einen Computer an, kann man so den Code "live" nachvervolgen. Wer das nicht möchte und das System über längere Zeit einsetzen will, kann natürlich die betreffenden `Serial.Println()` - Befehle auskommentieren. 
+Im `loop()`- Bereich werden die Sensoren nach einem bestimmten Zeitintervall ausgelesen: 
+
+```bash
+unsigned long currentMillis = millis(); //millis() gibt die Laufzeit des Systems in Millisekunden zurück
+
+if (currentMillis - previousMillis >= interval) { 
+    previousMillis = currentMillis;
+    //Hier wird alles ausgelesen
+}
+ ```
+
+Der Temperatur- Feuchtigkeits- und Luftdrucksensor wird in jedem Intervall einmal ausgelesen und direkt auf dem Server zur verfügung gestellt. Für die Amplitude wird allerdings ein Mittelwert über die letzten 30 Intervalle gebildet und in `amplitudeMean` gespeichert. Nach weiteren 30 Intervallen wird `amplitudeMean` wieder mit dem Mittelwert dieser Messungen aktualisiert. Dies dient der Glättung des sonst extrem schwankenden Signals. Selbst bei sehr lauter Musik, kann in einer Punktuellen Messung eine sehr niedrige Amplitude aufgenommen werden, weil einfach gerade eine Pause gemacht wurde. Da zur Bestimmung des Party-Indizes aber eher die Durschnittliche Lautstärke über ein einen bestimmten Zeitraum herangezogen werden sollte, damit dieser nicht allzusehr schwankt, wird diese Glättung direkt in der Sensoreinheit vorgenommen. 
+
+Im Anschluss an das Auslesen der Sensoren wird der Webserver gehandelt, das passiert bei jedem Durchlauf der `loop()`. 
 
 ## Einrichtung des Frontend Servers auf dem Raspberry Pi
 

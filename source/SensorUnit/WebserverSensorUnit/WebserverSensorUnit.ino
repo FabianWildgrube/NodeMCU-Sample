@@ -107,7 +107,7 @@ delay(300);
 void loop(){
   unsigned long currentMillis = millis();
   
-  if (currentMillis - previousMillis >= interval) {
+  if (currentMillis - previousMillis >= interval) { 
     previousMillis = currentMillis;
 
 unsigned int data[2];
@@ -215,7 +215,7 @@ char status;
           // Parameters: P = absolute pressure in mb, ALTITUDE = current altitude in m.
           // Result: p0 = sea-level compensated pressure in mb
 
-          p0 = pressure.sealevel(P,ALTITUDE); // we're at 1655 meters (Boulder, CO)
+          p0 = pressure.sealevel(P,ALTITUDE); 
           Serial.print("relative (sea-level) pressure: ");
           Serial.print(p0,2);
           Serial.print(" mb, ");
