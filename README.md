@@ -6,12 +6,6 @@ Im Rahmen der AG2 - Effizientes Rechnen wurde im Auditorium unseres Seminarhause
 
 Auf einem kleinen selbstgeschriebenen Node.js Server auf einem Raspberry Pi 2 im Gruppenraum der AG wurde der Sensor im Auditorium mittels HTTP-Request übers WLAN jede Minute nach seinen Daten gefragt. Die Sensoreinheit misst neben der Raumtemperatur auch die Luftfeuchtigkeit, sowie den Luftdruck und die Lautstärke. Diese Informationen sollten bis zum Ende der Akademie aufgenommen und gespeichert werden. Daraus wurde ein Party-Index berechnet, um über die Webseite verfolgen zu können, wann Vorträge oder auch Parties dort unten stattfanden und wie sich diese auf das Raumklima auswirkten.
 
-Die Sensorrohdaten im Browser:
-
-![Die Sensorrohdaten im Browser](images/IMG_0029.PNG)
-
-![Der Partyindex steigt ;)](images/IMG_0030.PNG)
-
 ## Inhalt
 
 * [Teile](#Teile)
@@ -45,36 +39,44 @@ Für die Wetterstation benötigt man folgende Teile:
 
 ## Sensor 
 
-Die Sensoreinheit besteht aus dem ESP-8266 als Zentrale, der Temperatur-, Luftfeuchtigkeit- und Luftdrucksensor sind über den I2C-Bus daran angeschlossen, hier werden die Pins D2 und D3 verwendet. Das Sound Detector Modul wird über den analogen Eingang ausgelesen. 
-Alle Module werden über die NodeMCU mit Versorgungsspannung versorgt (einer der 3V Pins) und natürlich werden alle ground pins miteinander verbunden. Die SCL-Ports werden mit D3 verbunden, die SDA-Ports mit D2. Der Envelope-Ausgang des Sound-Moduls wird an den analogen Eingang AO geschlossen. Liest man die analogen werte aus, bekommt man die aktuell gemessene Amplitude (also Lautstärke) geliefert. 
+Die Sensoreinheit besteht aus dem ESP-8266 als Zentrale, der Temperatur-, Luftfeuchtigkeit- und Luftdrucksensor sind über den I²C-Bus daran angeschlossen, hier werden die Pins `D2` und `D3` verwendet. Das Sound Detector Modul wird über den analogen Eingang ausgelesen. 
 
+Alle Module werden über die NodeMCU mit Versorgungsspannung versorgt (einer der 3V Pins) und natürlich werden alle ground pins miteinander verbunden. Die SCL-Ports werden mit `D3` verbunden, die SDA-Ports mit `D2`. Der Envelope-Ausgang des Sound-Moduls wird an den analogen Eingang `AO` geschlossen. Liest man die analogen werte aus, bekommt man die aktuell gemessene Amplitude (also Lautstärke) geliefert. 
 
 ## ESP-Setup
-Die Daten werden über ein Arduino-Skript auf dem ESP-8266 ausgelesen und auf diesem über einen kleinen Webserver zur Verfügung gestellt. Damit auch der ESP auch von der Arduino-IDE unterstützt wird, muss man ein Paket, den ESP 8266 Core, nachladen. Wie das geht kann man im [Github-Repository von der ESP8266 Community](https://github.com/esp8266/Arduino) nachlesen. Dann braucht nur noch das von dir verwendete Board in der IDE unter "Werkzeuge" ausgewählt werden, wir haben das NodeMCU (Basierend auf dem ESP-12E) verwendet. 
 
-Der Code für die Sensor-Einheit steht unter source/SensorUnit zur Verfügung. Er ist leider weder schön noch gut nachvollziehbar, ist aber über mehrere Tage sehr stabil gelaufen. Für den Webserver wird die `ESP8266WiFi.h`- Bibliothek benutzt, zum Ansprechen des BMP180 und für das Handling des I2C-Bus werden zwei weitere Bibliotheken, `SFE_BMP180.h` und `Wire.h`, verwendet. 
-Das Grundgerüst für den Webserver (was die meisten Zeilen ausmacht) basiert auf einem der Beispiele aus der Bibliothek. Die Sensordaten werden regelmäßig abgefragt und dann auf der Website als HTML angezeigt. Dies ist direkt für den User gedacht, der auf dem RasPi eingerichtete Server holt sich die Daten direkt im JSON-Format ab. Dieser ruft nicht die "Homepage" auf, sondern `/raw` und bekommt sofort ein JSON-Element geliefert. 
-Zum Debuggen und um nachzuvollziehen, was gerade so im System passiert ist die Serielle Ausgabe sehr hilfreich. Schließt man den ESP über USB an einen Computer an, kann man so den Code "live" nachvervolgen. Wer das nicht möchte und das System über längere Zeit einsetzen will, kann natürlich die betreffenden `Serial.Println()` - Befehle auskommentieren. 
-Im `loop()`- Bereich werden die Sensoren nach einem bestimmten Zeitintervall ausgelesen: 
+Die Daten werden über ein Arduino-Skript auf dem ESP-8266 ausgelesen und auf diesem über einen kleinen Webserver zur Verfügung gestellt. Damit auch der ESP auch von der Arduino-IDE unterstützt wird, muss man ein Paket, den ESP-8266 Core, nachladen. Wie das geht kann man im [Github-Repository von der ESP8266 Community](https://github.com/esp8266/Arduino) nachlesen. Dann braucht nur noch das von dir verwendete Board in der IDE unter "Werkzeuge" ausgewählt werden, wir haben das NodeMCU (Basierend auf dem ESP-12E) verwendet. 
 
-```bash
-unsigned long currentMillis = millis(); //millis() gibt die Laufzeit des Systems in Millisekunden zurück
+Der Code für die Sensor-Einheit steht unter Source/SensorUnit zur Verfügung. Er ist leider weder schön noch gut nachvollziehbar, ist aber über mehrere Tage sehr stabil gelaufen. Für den Webserver wird die `ESP8266WiFi`- Bibliothek benutzt, zum Ansprechen des BMP180 und für das Handling des I²C-Bus werden zwei weitere Bibliotheken, `SFE_BMP180` und `Wire`, verwendet. 
+
+Das Grundgerüst für den Webserver (was die meisten Zeilen ausmacht) basiert auf einem der Beispiele aus der Bibliothek. Die Sensordaten werden regelmäßig abgefragt und dann auf der Website als HTML angezeigt. Dies ist direkt für den User gedacht, der auf dem Raspberry Pi eingerichtete Server holt sich die Daten direkt im JSON-Format ab. Dieser ruft nicht die "Homepage" auf, sondern `/raw` und bekommt sofort ein JSON-Element geliefert. 
+
+Zum Debuggen und um nachzuvollziehen, was gerade so im System passiert ist die Serielle Ausgabe sehr hilfreich. Schließt man den ESP über USB an einen Computer an, kann man so den Code "live" nachvervolgen. Wer das nicht möchte und das System über längere Zeit einsetzen will, kann natürlich die betreffenden `Serial.println()` - Befehle auskommentieren. 
+
+Im `loop()`-Bereich werden die Sensoren nach einem bestimmten Zeitintervall ausgelesen: 
+
+```c
+unsigned long currentMillis = millis(); //Gibt die Laufzeit des Systems in Millisekunden zurück
 
 if (currentMillis - previousMillis >= interval) { 
-    previousMillis = currentMillis;
-    //Hier wird alles ausgelesen
+  previousMillis = currentMillis;
+  //Hier wird alles ausgelesen
 }
  ```
 
-Der Temperatur- Feuchtigkeits- und Luftdrucksensor wird in jedem Intervall einmal ausgelesen und direkt auf dem Server zur verfügung gestellt. Für die Amplitude wird allerdings ein Mittelwert über die letzten 30 Intervalle gebildet und in `amplitudeMean` gespeichert. Nach weiteren 30 Intervallen wird `amplitudeMean` wieder mit dem Mittelwert dieser Messungen aktualisiert. Dies dient der Glättung des sonst extrem schwankenden Signals. Selbst bei sehr lauter Musik, kann in einer Punktuellen Messung eine sehr niedrige Amplitude aufgenommen werden, weil einfach gerade eine Pause gemacht wurde. Da zur Bestimmung des Party-Indizes aber eher die Durschnittliche Lautstärke über ein einen bestimmten Zeitraum herangezogen werden sollte, damit dieser nicht allzusehr schwankt, wird diese Glättung direkt in der Sensoreinheit vorgenommen. 
+Der Temperatur- Feuchtigkeits- und Luftdrucksensor wird in jedem Intervall einmal ausgelesen und direkt auf dem Server zur verfügung gestellt. Für die Amplitude wird allerdings ein Mittelwert über die letzten 30 Intervalle gebildet und in `amplitudeMean` gespeichert. Nach weiteren 30 Intervallen wird `amplitudeMean` wieder mit dem Mittelwert dieser Messungen aktualisiert. Dies dient der Glättung des sonst extrem schwankenden Signals. Selbst bei sehr lauter Musik, kann in einer Punktuellen Messung eine sehr niedrige Amplitude aufgenommen werden, weil einfach gerade eine Pause gemacht wurde. Da zur Bestimmung des Party-Indizes aber eher die durschnittliche Lautstärke über ein einen bestimmten Zeitraum herangezogen werden sollte, damit dieser nicht allzusehr schwankt, wird diese Glättung direkt in der Sensoreinheit vorgenommen. 
 
-Im Anschluss an das Auslesen der Sensoren wird der Webserver gehandelt, das passiert bei jedem Durchlauf der `loop()`. 
+Im Anschluss an das Auslesen der Sensoren wird der Webserver gehandelt, das passiert bei jedem Durchlauf der `loop()`. Die Sensorrohdaten werden folgendermaßen visualisiert:
+
+![Die Sensorrohdaten im Browser](images/IMG_0029.PNG)
+
+Kommen wir nun zur Aufbereitung der Daten für den Webbrowser.
 
 ## Einrichtung des Frontend Servers auf dem Raspberry Pi
 
 ### Installieren von externen Modulen
 
-Um den Server auf dem Raspberry Pi (RasPi) zu realisieren brauchen wir einige externe Module. Zum einen `express`, welches eine unkomplizierte Realisierung des Servers auf Basis von NodeJS ermöglicht. Und zum anderen `jade`, um ohne großen Aufwand allerhand Variablen und Daten an die frontend Visualisierung zu übergeben (und uns nicht mit sperrigem html `<>` aufhalten zu müssen).
+Um den Server auf dem Raspberry Pi (RasPi) zu realisieren brauchen wir einige externe Module. Zum einen `express`, welches eine unkomplizierte Realisierung des Servers auf Basis von NodeJS ermöglicht. Und zum anderen `jade`, um ohne großen Aufwand allerhand Variablen und Daten an die frontend Visualisierung zu übergeben (und uns nicht mit sperrigem HTML `<>` aufhalten zu müssen).
 
 #### Express
 
@@ -111,7 +113,7 @@ Bei Problemen gibt es [hier mehr Infos zu express](http://expressjs.com/en/start
 
 #### Jade
 
-Die Installation von Jade ist relativ simpel:
+Die Installation von Jade ist relativ einfach:
 
 ```bash
 npm install jade --save
@@ -125,7 +127,7 @@ Bevor wir jedoch in die Untiefen des Codes einsteigen vergegenwärtigen wir uns 
 
 Unabhängig davon möchten wir auf eine http-Request eines Endnutzers eine Website bereitstellen, die die Daten der letzten Stunden (oder Tage) als Graphen ausgibt.
 
-Wir müssen also zum Einen ständig Daten pollen und speichern und zum Anderen mit Hilfe eines Servers auf eine http-Request mit einer schönen html Seite antworten. Let's do it!
+Wir müssen also zum Einen ständig Daten pollen und speichern und zum Anderen mit Hilfe eines Servers auf eine http-Request mit einer schönen HTML Seite antworten. Let's do it!
 
 ### Globale Variablen und Einstiegspunkt: config.json und index.js
 
@@ -372,6 +374,10 @@ Hier ist allerdings wirklich die Kreativität des Umsetzers gefragt einen besser
 
 Wir können nun also mithilfe dieser Transforms aus unserem großen Datensatz spezifisch einzelne Eigenschaften wie Temperatur oder Lautstärke oder ähnliches herausfiltern und bekommen sie in dem Format zurück, dass die Graphen brauchen um die Daten anzeigen zu können. Nun können wir tatsächlich damit anfangen den eigentlichen Server zu bauen. Endlich... ;)
 
+Das Ergebnis sieht wie folgt aus:
+
+![Der Partyindex steigt ;)](images/IMG_0030.PNG)
+
 ### Der Server: server.js
 
 Sinn des Servers ist es nach Requests aus dem Internet zu horchen und daraufhin eine Seite zu rendern, die die Daten, die wir sammeln hübsch darstellt. Ums hübsch darstellen kümmern wir uns später. Aber die request beantworten und alle Daten bereitstellen müssen wir über den Server.
@@ -491,7 +497,7 @@ Am Ende geben wir noch den Server zurück und voilá das Skellett unseres Fronte
 
 Wir haben nun also in *index.js*  die Sensor Polls gestartet (*sensor.js*), wodurch jede Minute Daten vom Sensor geholt werden und in unsere "Datenbank" Datei gespeichert werden. Gleichzeitig haben wir den Server gestartet (`server.start(...)`) und gerade in *server.js* definiert wo er lauschen soll und wie er auf verschiedene requests reagiert. Einmal die normale Nutzer request und einmal unsere Request an `/weather` um die Daten nach zu laden. 
 
-Das heißt jetzt müssen wir uns noch ein *.jade* template bauen, damit auch wirklich eine html Seite gerendert werden kann. Und dann müssen wir noch dafür sorgen, dass die Daten auch wirklich als Graphen dargestellt werden. Let's go!
+Das heißt jetzt müssen wir uns noch ein *.jade* template bauen, damit auch wirklich eine HTML Seite gerendert werden kann. Und dann müssen wir noch dafür sorgen, dass die Daten auch wirklich als Graphen dargestellt werden. Let's go!
 
 ## Frontend Visualisierung
 
